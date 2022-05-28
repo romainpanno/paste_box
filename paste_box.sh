@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SHELL_NAME=$(which $SHELL)
+FOLDER="$HOME/.paste_box"
 
 function file_exist() {
     if [ -f $1 ]; then
@@ -11,25 +12,25 @@ function file_exist() {
 }
 
 function get_file_numbers() {
-    local file_numbers=$(ls /tmp/paste_box | grep -e "" -c)
+    local file_numbers=$(ls $FOLDER | grep -e "" -c)
 
     echo "$file_numbers"
 }
 
 function get_all_files() {
-    local file_list="$(ls /tmp/paste_box | grep -e "")"
+    local file_list="$(ls $FOLDER | grep -e "")"
     local file_array=(`echo $file_list | tr '\n' ' '`)
 
     echo "${file_array[@]}"
 }
 
 function display_begin_one_file() {
-    local prefixe="/tmp/paste_box/"
-    local file_name="$prefixe$1"
+    local prefixe="$FOLDER"
+    local file_name="$prefixe/$1"
 
     echo "-----------------------------------------"
     echo "              ==> $1 <=="
-    echo "$(head -n 10 $prefixe$1)"
+    echo "$(head -n 10 $file_name)"
     echo "-----------------------------------------"
 }
 
@@ -46,14 +47,14 @@ function display_begin_files() {
 
 function add_into_new_file() {
     echo "Adding $1 into $2"
-    echo "$1" >> /tmp/paste_box/$2
+    echo "$1" >> $FOLDER/$2
 
-    file_exist "/tmp/paste_box/$2"
+    file_exist "$FOLDER/$2"
 }
 
-if [[ ! -d /tmp/paste_box ]]; then
-    echo "Creating directory /tmp/paste_box\n"
-    mkdir /tmp/paste_box
+if [[ ! -d $FOLDER ]]; then
+    echo "Creating directory $FOLDER\n"
+    mkdir "$FOLDER"
 fi
 echo -e "USAGE [
     - a : add to paste_box
@@ -79,27 +80,27 @@ elif [ "$answer" = "a" ]; then
         read file_name
     done
     echo "Paste the content to stock"
-    nano -L /tmp/paste_box/$file_name
-    file_exist "/tmp/paste_box/$file_name"
+    nano -L $FOLDER/$file_name
+    file_exist "$FOLDER/$file_name"
 elif [ "$answer" = "g" ]; then
     echo -n "enter file name (or 'last' for last paste) : "
     read file_name
-    while [[ "$file_name" != "" ]] && [[ "$file_name" != "last" ]] && [[ ! -f "/tmp/paste_box/$file_name" ]]; do
+    while [[ "$file_name" != "" ]] && [[ "$file_name" != "last" ]] && [[ ! -f "$FOLDER/$file_name" ]]; do
         echo -n "file doesn't exist retry : "
         read file_name
     done
     if [[ "$file_name" == "" || "$file_name" == "last" ]]; then
-        file_name=$(ls --time=creation /tmp/paste_box/ | head -n 1)
+        file_name=$(ls --time=creation $FOLDER | head -n 1)
     fi
-    cat "/tmp/paste_box/$file_name" | xclip -i -selection clipboard
+    cat "$FOLDER/$file_name" | xclip -i -selection clipboard
     echo "==> $file_name <== :"
-    echo "$(head -n 10 /tmp/paste_box/$file_name)"
+    echo "$(head -n 10 $FOLDER/$file_name)"
     echo "pasted into your clipboard"
 elif [ "$answer" = "c" ]; then
     echo -n "are you shure ? (y/n) : "
     read answer
     if [ "$answer" = "y" ]; then
-        rm -rf /tmp/paste_box/*
+        rm -rf $FOLDER/*
     fi
 else
     echo "Ok, bye"
